@@ -70,7 +70,7 @@ class ContactFragment : Fragment() {
 
         // 권한이 이미 허용되었는지 확인
         if (ContextCompat.checkSelfPermission(requireContext(), readContactsPermission) == PackageManager.PERMISSION_GRANTED) {
-            // 권한이 이미 허용된 경우 실행할 코드
+            // 권한이 이미 허용된 경우 실행할 코드입니다.
             getContact()
         } else {
             // 권한을 요청
