@@ -29,6 +29,7 @@ class DetailActivity : AppCompatActivity() {
         private lateinit var detailContact: Contact
         private var contactPosition = 0
 
+
         val CONTACT_POSITION = "contact_position"
         val CONTACT_ITEM = "contact_item"
 
@@ -88,7 +89,7 @@ class DetailActivity : AppCompatActivity() {
                 detailContact.phoneNumber = tvMobile.text.toString()
                 detailContact.email = tvEmail.text.toString()
                 detailContact.profileImageUri = selectedImageUri
-                detailContact.isNew = true
+
 
                 val resultIntent = Intent()
 //                resultIntent.putExtra("BOOKMARK", detailContact.bookmark)
