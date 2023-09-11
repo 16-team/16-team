@@ -1,9 +1,11 @@
 package com.example.contacts
 
+import android.Manifest
 import android.app.Activity
 import android.content.Context
 import android.content.DialogInterface
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.net.Uri
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
@@ -16,6 +18,8 @@ import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import com.bumptech.glide.Glide
 import com.example.contacts.Util.callPhoneNumber
 import com.example.contacts.Util.messagePhoneNumber
@@ -27,6 +31,8 @@ class DetailActivity : AppCompatActivity() {
     private val EDIT_IMAGE_REQUEST_CODE_DETAIL = 6
     private lateinit var editImage: ImageView
     private var selectedImageUri: Uri? = null
+    val PERMISSION_REQUEST_CODE = 1001
+    val PERMISSION_READ_MEDIA_IMAGES = Manifest.permission.READ_MEDIA_IMAGES
 
     companion object {
         private lateinit var detailContact: Contact
@@ -92,8 +98,11 @@ class DetailActivity : AppCompatActivity() {
                 val resultIntent = Intent()
                 resultIntent.putExtra(CONTACT_ITEM, detailContact) // 객체 콜백으로 전송
                 resultIntent.putExtra(CONTACT_POSITION, contactPosition) // 수정에 필요한 position
-                setResult(RESULT_OK, resultIntent)
 
+                // URI를 Intent에 추가
+                resultIntent.putExtra("selectedImageUri", selectedImageUri)
+
+                setResult(RESULT_OK, resultIntent)
                 finish()
             }
 
@@ -122,9 +131,15 @@ class DetailActivity : AppCompatActivity() {
 
             // 갤러리에서 이미지 선택을 위한 코드
             ibEditImg.setOnClickListener {
-                val intent =
-                    Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
-                startActivityForResult(intent, EDIT_IMAGE_REQUEST_CODE_DETAIL)
+                // 권한 확인
+                if (ContextCompat.checkSelfPermission(this, PERMISSION_READ_MEDIA_IMAGES) == PackageManager.PERMISSION_GRANTED) {
+                    // 이미 권한이 부여된 경우, 이동하거나 원하는 작업을 수행합니다.
+                    val intent = Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
+                    startActivityForResult(intent, EDIT_IMAGE_REQUEST_CODE_DETAIL)
+                } else {
+                    // 권한이 부여되지 않은 경우, 권한을 요청합니다.
+                    ActivityCompat.requestPermissions(this, arrayOf(PERMISSION_READ_MEDIA_IMAGES), PERMISSION_REQUEST_CODE)
+                }
             }
 
             // p0에 해당 AlertDialog가 들어온다. findViewById를 통해 view를 가져와서 사용
@@ -153,6 +168,7 @@ class DetailActivity : AppCompatActivity() {
 
             alertDialog.show()
         }
+
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
@@ -172,10 +188,30 @@ class DetailActivity : AppCompatActivity() {
     }
 
     fun showSnackBarMessage(message: String) {
-       val snackbar =Snackbar.make(binding.root,message,Snackbar.LENGTH_SHORT)
-        val snackbarText =snackbar.view.findViewById(com.google.android.material.R.id.snackbar_text)as TextView
+        val snackbar = Snackbar.make(binding.root, message, Snackbar.LENGTH_SHORT)
+        val snackbarText =
+            snackbar.view.findViewById(com.google.android.material.R.id.snackbar_text) as TextView
 
         snackbarText.textAlignment = View.TEXT_ALIGNMENT_CENTER
         snackbar.show()
     }
+
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<String>,
+        grantResults: IntArray
+    ) {super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        when (requestCode) {
+            PERMISSION_REQUEST_CODE -> {
+                if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    // 권한이 허용된 경우
+                    // 선택한 URI에 접근하여 작업을 수행할 수 있음
+                } else {
+                    // 권한이 거부된 경우
+                    // 사용자에게 권한의 필요성을 다시 설명하거나 대체 조치를 취할 수 있음
+                }
+            }
+        }
+    }
+
 }
